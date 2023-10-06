@@ -1,0 +1,3 @@
+[submodule "lima"]
+	path = lima
+	url = https://github.com/rancher-sandbox/lima.git
