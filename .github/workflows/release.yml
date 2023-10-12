@@ -47,7 +47,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: lima.${{ matrix.os }}
-        path: lima/lima.${{ matrix.os }}.*
+        path: lima/lima.*
         if-no-files-found: error
 
   release:
