@@ -38,7 +38,7 @@ jobs:
         cd lima
         for GOARCH in amd64 arm64; do
           if [ "$GOARCH" == "amd64" -o "$(uname)" == "Darwin" ]; then
-            make clean minimal
+            GOARCH=$GOARCH make clean minimal
             TARBALL="lima.${OS/ubuntu-*/linux}.$GOARCH.tar.gz"
             tar cfvz "$TARBALL" -C _output --exclude ./share/lima/templates ./
             sha512sum "$TARBALL" >"$TARBALL.sha512sum"
