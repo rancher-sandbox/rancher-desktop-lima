@@ -19,7 +19,7 @@ jobs:
         - macos-12
         - ubuntu-20.04
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
     - uses: actions/setup-go@v4
       with:
