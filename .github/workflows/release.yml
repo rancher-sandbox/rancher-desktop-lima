@@ -27,6 +27,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+        fetch-depth: 0
         submodules: recursive
     - name: Install sha512sum
       if: startswith(matrix.os, 'macos')
