@@ -5,6 +5,7 @@ on:
     tags:
     - 'v*.rd*'
     - 'test-v*.rd*'
+  pull_request:
   workflow_dispatch:
 
 env:
@@ -15,15 +16,15 @@ jobs:
     strategy:
       matrix:
         os:
-        - macos-11
         - macos-12
+        - macos-13
         - ubuntu-20.04
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
     - uses: actions/setup-go@v4
       with:
-        go-version: 1.21.x
+        go-version: 1.23.x
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
@@ -47,7 +48,7 @@ jobs:
             ARCH=${ARCH/arm64/aarch64}
             GUESTAGENT="_output/share/lima/lima-guestagent.Linux-${ARCH}"
 
-            make clean exe codesign "$GUESTAGENT"
+            make clean exe "$GUESTAGENT"
             find _output -type f -exec file {} \;
 
             TARBALL="lima.${OS/ubuntu-*/linux}.${GOARCH}.tar.gz"
@@ -62,6 +63,7 @@ jobs:
         if-no-files-found: error
 
   release:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [build]
