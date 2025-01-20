@@ -18,21 +18,28 @@ jobs:
         os:
         - macos-15
         - ubuntu-20.04
+        - windows-latest
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
     - uses: actions/setup-go@v4
       with:
         go-version: 1.23.x
+    - name: Force LF line endings in git checkout
+      if: runner.os == 'Windows'
+      run: |
+        git config --system core.autocrlf false
+        git config --system core.eol lf
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
         fetch-depth: 0
         submodules: recursive
     - name: Install sha512sum
-      if: startswith(matrix.os, 'macos')
+      if: runner.os == 'macOS'
       run: brew install coreutils
     - name: Build lima tarballs
+      shell: bash
       env:
         OS: ${{ matrix.os }}
       run: |
