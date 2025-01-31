@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os:
-        - macos-13
+        - macos-15
         - ubuntu-20.04
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -37,7 +37,8 @@ jobs:
         OS: ${{ matrix.os }}
       run: |
         set -x
-        command -v xcrun && xcrun --show-sdk-version
+        # xcrun command fails on macOS15
+        command -v xcrun && xcrun --show-sdk-version || true
 
         cd lima
         export GOARCH
