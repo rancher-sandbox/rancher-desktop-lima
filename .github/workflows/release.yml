@@ -22,9 +22,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
-    - uses: actions/setup-go@v4
-      with:
-        go-version: 1.23.x
     - name: Force LF line endings in git checkout
       if: runner.os == 'Windows'
       run: |
@@ -35,6 +32,10 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
         submodules: recursive
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: lima/go.mod
+        cache-dependency-path: lima/go.sum
     - name: Install sha512sum
       if: runner.os == 'macOS'
       run: brew install coreutils
@@ -42,12 +43,12 @@ jobs:
       shell: bash
       env:
         OS: ${{ matrix.os }}
+      working-directory: lima
       run: |
         set -x
         # xcrun command fails on macOS15
         command -v xcrun && xcrun --show-sdk-version || true
 
-        cd lima
         export GOARCH
         for GOARCH in amd64 arm64; do
           if [ "$GOARCH" == "amd64" -o "$(uname)" == "Darwin" ]; then
