@@ -15,50 +15,52 @@ jobs:
   build:
     strategy:
       matrix:
-        os:
-        - macos-15
-        - ubuntu-20.04
+        include:
+        - { os: macos-15, arch: arm64 }
+        - { os: macos-15, arch: amd64 }
+        - { os: ubuntu-22.04, arch: amd64 }
+        - { os: windows-latest, arch: amd64 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
-    - uses: actions/setup-go@v4
-      with:
-        go-version: 1.23.x
+    - name: Force LF line endings in git checkout
+      if: runner.os == 'Windows'
+      run: |
+        git config --system core.autocrlf false
+        git config --system core.eol lf
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
         fetch-depth: 0
         submodules: recursive
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: lima/go.mod
+        cache-dependency-path: lima/go.sum
     - name: Install sha512sum
-      if: startswith(matrix.os, 'macos')
+      if: runner.os == 'macOS'
       run: brew install coreutils
-    - name: Build lima tarballs
+    - name: Build lima tarball
+      shell: bash
       env:
         OS: ${{ matrix.os }}
+        GOARCH: ${{ matrix.arch }}
+      working-directory: lima
       run: |
         set -x
-        # xcrun command fails on macOS15
-        command -v xcrun && xcrun --show-sdk-version || true
+        ARCH=${GOARCH/amd64/x86_64}
+        ARCH=${ARCH/arm64/aarch64}
+        GUESTAGENT="_output/share/lima/lima-guestagent.Linux-${ARCH}"
 
-        cd lima
-        export GOARCH
-        for GOARCH in amd64 arm64; do
-          if [ "$GOARCH" == "amd64" -o "$(uname)" == "Darwin" ]; then
-            ARCH=${GOARCH/amd64/x86_64}
-            ARCH=${ARCH/arm64/aarch64}
-            GUESTAGENT="_output/share/lima/lima-guestagent.Linux-${ARCH}"
+        make clean exe "$GUESTAGENT"
+        find _output -type f -exec file {} \;
 
-            make clean exe "$GUESTAGENT"
-            find _output -type f -exec file {} \;
-
-            TARBALL="lima.${OS/ubuntu-*/linux}.${GOARCH}.tar.gz"
-            tar cfvz "$TARBALL" -C _output ./
-            sha512sum "$TARBALL" >"${TARBALL}.sha512sum"
-          fi
-        done
+        TARBALL="lima.${OS/ubuntu-*/linux}.${GOARCH}.tar.gz"
+        tar cfvz "$TARBALL" -C _output ./
+        sha512sum "$TARBALL" >"${TARBALL}.sha512sum"
     - uses: actions/upload-artifact@v4
       with:
-        name: lima.${{ matrix.os }}
+        name: lima.${{ matrix.os }}-${{ matrix.arch }}
         path: lima/lima.*
         if-no-files-found: error
 
