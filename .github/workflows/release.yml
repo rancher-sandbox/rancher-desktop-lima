@@ -19,6 +19,7 @@ jobs:
         - { os: macos-15, arch: arm64 }
         - { os: macos-15, arch: amd64 }
         - { os: ubuntu-22.04, arch: amd64 }
+        - { os: ubuntu-22.04, arch: arm64 }
         - { os: windows-latest, arch: amd64 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -40,6 +41,11 @@ jobs:
     - name: Install sha512sum
       if: runner.os == 'macOS'
       run: brew install coreutils
+    - name: Install aarch64 cross-compiler
+      if: runner.os == 'Linux' && matrix.arch == 'arm64'
+      run: |
+        sudo apt update
+        sudo apt install gcc-aarch64-linux-gnu
     - name: Build lima tarball
       shell: bash
       env:
